@@ -10,7 +10,7 @@ matrix:
 	dd	1, 2, 3, 4, 5	
 	dd	0, -7, 3, -1, -1
 sum:
-	dd	0, 0, 0
+	dd	0, 0, 0, 0
 section	.text
 global	_start
 _start:
@@ -56,9 +56,9 @@ while_: ;while
 	jne	end
 	inc	esi
 	; push	rcx
-	mov	edx, [sum]
+	mov	edx, [sum + eax * 4]
 	mov	edi, eax
-	xor	r8, r8
+	mov	r8, rax
 	; mov	esi, ebx
 left_to_right:
 	; mov	edi, eax
@@ -67,7 +67,7 @@ left_to_right:
 	cmp	[sum + rdi * 4], edx
 	cmovg	edx, [rdi * 4 + sum]
 	cmovg	r8, rdi
-	cmovl	esi, ebp
+	cmovl	esi, ebp ;TODO
 	cmp	edi, ebx
 	jne	left_to_right
 	; dec	ebx
@@ -107,6 +107,8 @@ swap_rows:
 	; add	edi, eax
 	loop	swap_rows
 	dec	ebx
+	cmp	eax, ebx
+	jae	end
 	mov	ecx, ebx
 	mov	edi, ebx
 	mov	edx, [sum + ebx * 4]
@@ -117,12 +119,11 @@ right_to_left:
 	; mov	edi, eax
 	dec	edi
 	mov 	ebp, 0
-	cmp	edx, [sum + rdi * 4]
+	cmp	[sum + rdi * 4], edx
 	cmovl	edx, [rdi * 4 + sum]
 	cmovl	r8, rdi
 	cmovl	esi, ebp
 	loop	right_to_left
-	inc	eax
 	cmp	esi, 0
 	je	swap_backward
 	jmp	while_
@@ -141,7 +142,7 @@ swap_backward:
 	jne	while_
 	; mov	ecx
 	xchg	edx, [sum + eax * 4]
-	mov 	[sum + r8 * 4], eax
+	mov 	[sum + r8 * 4], edx
 	xor	esi, esi
 	mov	ebp, [m]
 	mov	ecx, ebp
@@ -164,6 +165,9 @@ swap_rows_backward:
 	; shl	eax, 2
 	; add	edi, eax
 	loop	swap_rows_backward
+	inc 	eax
+	cmp	eax, ebx
+	jae	end
 	jmp	while_	
 end:
 	mov	eax, 60
