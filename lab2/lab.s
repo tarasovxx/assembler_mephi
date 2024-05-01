@@ -1,104 +1,108 @@
 bits	64
 ;	Sorting rows by matrix in sum 
+; Почему в памяти обращаемся на 8 бит больше
+; db: [-128, 127] || [0, 255]
 section	.data
 n:
-	dd	3
+	db	4
 m:
-	dd	5
+	db	3
 matrix:
-	dd	4, 6, 1, 8, 2
-	dd	1, 2, 3, 4, 5	
-	dd	0, -7, 3, -1, -1
+	db	1, 0, 2
+	db	-1, 3, -1	
+	db	2, 1, 1
+	db	0, 0, 2
 sum:
-	dd	0, 0, 0, 0
+	db	0, 0, 0, 0
 section	.text
 global	_start
 _start:
-	mov	ecx, [n]
-	;dec 	ecx
-	cmp	ecx, 1
+	mov	cl, byte [n]
+	cmp	cl, 1
 	jle	end
 	xor	r8, r8
-	mov	ebx, matrix
+	mov	rbx, matrix
 m1:
-	xor	edi, edi
-	mov	eax, [rbx]
+	xor	dil, dil
+	;movzx 	rbx, bl
+	mov	al, [rbx]
+	movzx	rcx, cl
 	push	rcx
-	mov	ecx, [m]
-	dec	ecx
+	mov	cl, [m]
+	dec	cl
 	jecxz	m3
 m2:
-	;inc	edi
-	add 	ebx, 4
-	add	eax, [rbx]
-	;add	ebx, 4
+	inc 	bl
+	;movzx	rbx, bl
+	add	al, [rbx]
 	loop	m2
 m3:
-	;mov	ebx, [rbx + rdi * 4 + 4]
-	xor	edi, edi
-	add	ebx, 4
-	mov	edi, sum
-	mov	[rdi + r8], eax
-	add	r8, 4
+	xor	dil, dil
+	inc	bl
+	mov	rdi, sum
+	mov	byte [rdi + r8], al
+	inc	r8
 	pop	rcx
 	loop	m1
-	xor	ebx, ebx
-	mov	ecx, [n]
-	mov	eax, 0 ; left
-	mov	ebx, [n] ; right 
-	dec	ebx;
-	mov	esi, 0; ; flag
-	dec	ecx
+	xor	bl, bl
+	mov	cl, [n]
+	xor	ax, ax ; left
+	movzx	rbx, byte [n] ; right 
+	dec	bl;
+	xor	si, si ; flag
+	dec	cl
 while_: ;while 
-	cmp	eax, ebx
+	cmp	al, bl
 	jae	end
-	cmp	esi, 0
+	cmp	sil, 0
 	jne	end
-	inc	esi
+	inc	sil
 	; push	rcx
-	mov	edx, [sum + eax * 4]
-	mov	edi, eax
-	mov	r8, rax
+	movzx	rax, al
+	movzx	dx, [sum + rax]
+	mov	dil, al
+	mov	r8, rax ;TODO
 	; mov	esi, ebx
 left_to_right:
 	; mov	edi, eax
-	mov 	ebp, 0
-	inc	edi
-	cmp	[sum + rdi * 4], edx
-	cmovg	edx, [rdi * 4 + sum]
+	xor 	bp, bp
+	inc	dil
+	movzx	rdi, dil
+	cmp	[sum + rdi], dl
+	cmovg	dx, [sum + rdi]
 	cmovg	r8, rdi
-	cmovl	esi, ebp ;TODO
-	cmp	edi, ebx
+	cmovl	si, bp ;TODO
+	cmp	dil, bl
 	jne	left_to_right
 	; dec	ebx
 	je	swap
 swap:
-	cmp	esi, 0
+	cmp	si, 0
 	jne	right_to_left
 	;mov	ecx
-	xchg	edx, [sum + ebx * 4]
-	mov 	[sum + r8 * 4], edx
-	xor	esi, esi
+	xchg	dl, [sum + rbx]
+	mov 	[sum + r8], dl
+	xor	si, si
 	;mov	ecx, [n]
-	mov	ebp, [m]
-	mov	ecx, ebp
-	shl	ebp, 2
+	mov	bpl, [m]
+	mov	cl, bpl
+	;shl	ebp, 2
 	;shl 	ecx, 2
-	mov	edi, ebx
+	movzx	di, bl
 	;mov	r8, [matrix + r8]
 	;mov	edi, [matrix +  ebp]
-	imul 	edi, ebp
-	imul	r8, rbp
+	imul 	di, bp
+	imul	r8, rbp ;TODO
 	jmp 	swap_rows ;TODO
 
 	jmp	right_to_left
 
 swap_rows:
-	mov	esp, [matrix + r8] ; указательна начала строки жирной
-	xchg	[matrix + edi], esp
-	mov	[matrix + r8], esp
-	add	r8, 4
-	add	edi, 4
+	mov	spl, [matrix + r8] ; указательна начала строки жирной
+	xchg	[matrix + rdi], spl
+	mov	[matrix + r8], spl
+	inc	r8
+	inc	dil
 	; mov	edx, [rdi + rsi * 4]
 	; mov	[rdi+rbx*4], edx
 	; mov	[rdi+rsi*4], eax
@@ -106,25 +110,25 @@ swap_rows:
 	; shl	eax, 2
 	; add	edi, eax
 	loop	swap_rows
-	dec	ebx
-	cmp	eax, ebx
+	dec	bl
+	cmp	al, bl
 	jae	end
-	mov	ecx, ebx
-	mov	edi, ebx
-	mov	edx, [sum + ebx * 4]
-	mov	esi, 1
+	mov	cl, bl
+	mov	dil, bl
+	movzx	dx, byte [sum + rbx]
+	mov	sil, 1
 	jmp	right_to_left
 
 right_to_left:
 	; mov	edi, eax
-	dec	edi
-	mov 	ebp, 0
-	cmp	[sum + rdi * 4], edx
-	cmovl	edx, [rdi * 4 + sum]
+	dec	dil
+	xor 	bp, bp
+	cmp	dx, [sum + rdi]
+	cmovl	dx, [rdi + sum]
 	cmovl	r8, rdi
-	cmovl	esi, ebp
+	cmovl	si, bp
 	loop	right_to_left
-	cmp	esi, 0
+	cmp	si, 0
 	je	swap_backward
 	jmp	while_
 
@@ -138,26 +142,26 @@ right_to_left:
 	; mov	ecx, [m]
 	; mov	edi, matrix
 swap_backward:
-	cmp	esi, 0
+	cmp	sil, 0
 	jne	while_
 	; mov	ecx
-	xchg	edx, [sum + eax * 4]
-	mov 	[sum + r8 * 4], edx
-	xor	esi, esi
-	mov	ebp, [m]
-	mov	ecx, ebp
-	mov	edi, eax
-	shl	ebp, 2
-	imul	edi, ebp
+	xchg	dl, [sum + rax]
+	mov 	[sum + r8], dl
+	xor	sil, sil
+	mov	bpl, [m]
+	mov	cl, bpl
+	movzx	di, al
+	;shl	ebp, 2
+	imul	di, bp
 	imul	r8, rbp
 	jmp 	swap_rows_backward
 
 swap_rows_backward:
-	mov	esp, [matrix + r8] ; указательна начала строки жирной
-	xchg	esp, [matrix + edi] 
-	mov	[matrix + r8], esp
-	add	r8, 4
-	add	edi, 4
+	mov	spl, [matrix + r8] ; указательна начала строки жирной
+	xchg	spl, [matrix + rdi] 
+	mov	[matrix + r8], spl
+	inc	r8
+	inc	dil
 	; mov	edx, [rdi + rsi * 4]
 	; mov	[rdi+rbx*4], edx
 	; mov	[rdi+rsi*4], eax
@@ -165,8 +169,8 @@ swap_rows_backward:
 	; shl	eax, 2
 	; add	edi, eax
 	loop	swap_rows_backward
-	inc 	eax
-	cmp	eax, ebx
+	inc 	al
+	cmp	al, bl
 	jae	end
 	jmp	while_	
 end:
