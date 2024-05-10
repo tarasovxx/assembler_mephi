@@ -1,6 +1,5 @@
 bits	64
 ;	Sorting rows by matrix in sum 
-; Почему в памяти обращаемся на 8 бит больше
 ; db: [-128, 127] || [0, 255]
 section	.data
 n:
@@ -103,12 +102,6 @@ swap_rows:
 	mov	[matrix + r8], spl
 	inc	r8
 	inc	dil
-	; mov	edx, [rdi + rsi * 4]
-	; mov	[rdi+rbx*4], edx
-	; mov	[rdi+rsi*4], eax
-	; mov	eax, [n]
-	; shl	eax, 2
-	; add	edi, eax
 	loop	swap_rows
 	dec	bl
 	cmp	al, bl
@@ -131,16 +124,6 @@ right_to_left:
 	cmp	si, 0
 	je	swap_backward
 	jmp	while_
-
-
-
-	; cmp	esi, ebx
-	; je	m7
-	; mov	edx, [rbx * 4 + sum]
-	; mov	[rbx*4+sum], eax
-	; mov	[rsi*4+sum], edx
-	; mov	ecx, [m]
-	; mov	edi, matrix
 swap_backward:
 	cmp	sil, 0
 	jne	while_
@@ -162,17 +145,11 @@ swap_rows_backward:
 	mov	[matrix + r8], spl
 	inc	r8
 	inc	dil
-	; mov	edx, [rdi + rsi * 4]
-	; mov	[rdi+rbx*4], edx
-	; mov	[rdi+rsi*4], eax
-	; mov	eax, [n]
-	; shl	eax, 2
-	; add	edi, eax
 	loop	swap_rows_backward
 	inc 	al
 	cmp	al, bl
 	jae	end
-	jmp	while_	
+	jmp	while_
 end:
 	mov	eax, 60
 	mov	edi, 0

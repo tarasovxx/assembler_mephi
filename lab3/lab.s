@@ -4,9 +4,15 @@ section	.data
 size	equ	4096
 namelen	equ	1024
 anslen	equ	3
-msg1:
-	db	"Input filename for read", 10
-msg1len equ	$-msg1
+err1:
+	db	"Usage: "
+err1len	equ	$-err1
+err3:
+	db	" name_of_variable", 10
+err2len	equ	$-err3
+err4:
+	db	"NotFound"
+err3len	equ	$-err4
 err2:
 	db	"No such file or direcrtory!", 10
 err13:
@@ -15,8 +21,6 @@ err21:
 	db	"Is a directory!", 10
 err36:
 	db	"File name too long", 10
-err150:
-	db	"Program does not require parameters!", 10
 err255:
 	db	"Unknown error!", 10
 errlist:
@@ -24,15 +28,11 @@ errlist:
 	dd	err2
 	times	10	dd	err255
 	dd	err13
-	times	6	dd	err255
+	times	7	dd	err255
 	dd	err21
 	times	14	dd	err255
 	dd	err36
-	times	113	dd	err255
-	dd	err150
-	times	155	dd	err255
-name1:
-	times	namelen	db	0
+	times	269	dd	err255
 ans:
 	times	anslen	db	0
 fdr:
@@ -41,74 +41,105 @@ section	.text
 global	_start
 _start:
 	cmp	dword [rsp], 2
-	je	.m0
-	mov	ebx, 150
-	jmp	.m4
-.m0:
+	je	.m3
 	mov	eax, 1
-	mov	edi, 1
-	mov	esi, msg1
-	mov	edx, msg1len
+	mov	edi, 2
+	mov	esi, err1
+	mov	edx, err1len
 	syscall
-	mov	eax, 0
-	mov	edi, 0
-	mov	esi, name1
-	mov	edx, namelen
-	syscall
-	or	eax, eax
-	jle	.m1
-	cmp	eax, namelen
-	jl	.m2
+	mov	eax, 1
+	mov	edi, 2
+	mov	rsi, [rsp+8]
+	xor	edx, edx
 .m1:
-	mov	ebx, 151
-	jmp	.m4
+	cmp	byte [rsi+rdx], 0
+	je	.m2
+	inc	edx
+	jmp	.m1
 .m2:
-	mov	byte [rax+name1-1], 0 ; затираем нулём, так как в конце \n
-	mov	eax, 2 ; открыть файл
-	mov	edi, name1
+	syscall
+	mov	eax, 1
+	mov	edi, 2
+	mov	esi, err2
+	mov	edx, err2len
+	syscall
+	mov	edi, 1
+	jmp	.m8
+.m3:
+	mov	rdi, [rsp+16]
+	mov	ebx, 3
+.m4:
+	inc	ebx
+	mov	rsi, [rsp+rbx*8]
+	or	rsi, rsi
+	je	.m9
+	xor	ecx, ecx
+.m5:
+	mov	al, [rdi+rcx]
+	cmp	al, [rsi+rcx]
+	jne	.m6
+	inc	ecx
+	jmp	.m5
+.m6:
+	or	al, al
+	jne	.m4
+	cmp	byte [rsi+rcx], "="
+	jne	.m4
+	inc 	ecx
+	mov	eax, 2
+	add	rsi, rcx
+	mov	rdi, rsi
 	xor	esi, esi
 	syscall
 	or	eax, eax
-	jmp	.m_help
+	jge	.m_help
 	mov	ebx, eax
 	neg	ebx
-	jmp	.m4
+	jmp	.m11
 .m_help:
 	mov	[fdr], eax
-
-.m3:
+.m3_help:
 	mov	edi, [fdr]
 	call	work
 	mov	ebx, eax
 	neg	ebx
-.m4:
+	jmp 	.m6_help
+
+.m9:
+	mov	eax, 1
+	mov	edi, 2
+	mov	esi, err3
+	mov	edx, err3len
+	syscall
+	mov	edi, 1
+
+.m11:
 	or	ebx, ebx
-	je	.m6
+	je	.m6_help
 	mov	eax, 1
 	mov	edi, 1
 	mov	esi, [errlist+rbx*4]
 	xor	edx, edx
-.m5:
+
+.m12:
 	inc	edx
 	cmp	byte [rsi+rdx-1], 10
-	jne	.m5
+	jne	.m12
 	syscall
-.m6:
+
+.m6_help:
 	cmp	dword [fdr], -1
-	je	.m7
+	je	.m8
 	mov	eax, 3
 	mov	edi, [fdr]
 	syscall
-.m7:
-	;cmp	dword [fdw], -1
-	je	.m8
-	mov	eax, 3
-	;mov	edi, [fdw]
-	syscall
+
 .m8:
-	mov	edi, ebx
 	mov	eax, 60
 	syscall
+
+
+
 bufin	equ	size
 bufout	equ	size+bufin
 buftmp	equ	size+bufout
