@@ -10,9 +10,12 @@ matrix:
 	db	1, 0, 2
 	db	-1, 3, -1	
 	db	2, 1, 1
-	db	0, 0, 2
+	db 	0, 0, 2
+ans:	times	12	db	0
 sum:
 	db	0, 0, 0, 0
+ind:
+	db	0, 1, 2, 3
 section	.text
 global	_start
 _start:
@@ -20,6 +23,7 @@ _start:
 	cmp	cl, 1
 	jle	end
 	xor	r8, r8
+	xor	r13, r13
 	mov	rbx, matrix
 m1:
 	xor	dil, dil
@@ -50,106 +54,83 @@ m3:
 	dec	bl;
 	xor	si, si ; flag
 	dec	cl
-while_: ;while 
+while: ;while 
+	xor	dil, dil
 	cmp	al, bl
-	jae	end
+	jae	return_ans
 	cmp	sil, 0
 	jne	end
 	inc	sil
-	; push	rcx
 	movzx	rax, al
 	movzx	dx, [sum + rax]
 	mov	dil, al
-	mov	r8, rax ;TODO
-	; mov	esi, ebx
+	mov	r8w, ax
 left_to_right:
-	; mov	edi, eax
 	xor 	bp, bp
 	inc	dil
 	movzx	rdi, dil
 	cmp	[sum + rdi], dl
 	cmovg	dx, [sum + rdi]
-	cmovg	r8, rdi
-	cmovl	si, bp ;TODO
+	cmovg	r8w, di
+	cmovl	si, bp
 	cmp	dil, bl
 	jne	left_to_right
-	; dec	ebx
-	je	swap
-swap:
+	mov	r9b, 1; for swap, continue right_to_left
+	mov	r10, rbx
+	dec	rbx
 	cmp	si, 0
-	jne	right_to_left
-	;mov	ecx
-	xchg	dl, [sum + rbx]
-	mov 	[sum + r8], dl
-	xor	si, si
-	;mov	ecx, [n]
-	mov	bpl, [m]
-	mov	cl, bpl
-	;shl	ebp, 2
-	;shl 	ecx, 2
-	movzx	di, bl
-	;mov	r8, [matrix + r8]
-	;mov	edi, [matrix +  ebp]
-	imul 	di, bp
-	imul	r8, rbp ;TODO
-	jmp 	swap_rows ;TODO
+	je	swap
+	jne 	right_to_left
 
-	jmp	right_to_left
-
-swap_rows:
-	mov	spl, [matrix + r8] ; указательна начала строки жирной
-	xchg	[matrix + rdi], spl
-	mov	[matrix + r8], spl
-	inc	r8
-	inc	dil
-	loop	swap_rows
-	dec	bl
-	cmp	al, bl
-	jae	end
-	mov	cl, bl
-	mov	dil, bl
-	movzx	dx, byte [sum + rbx]
+right_to_left_prepare:
 	mov	sil, 1
-	jmp	right_to_left
 
 right_to_left:
-	; mov	edi, eax
 	dec	dil
 	xor 	bp, bp
-	cmp	dx, [sum + rdi]
-	cmovl	dx, [rdi + sum]
-	cmovl	r8, rdi
-	cmovl	si, bp
-	loop	right_to_left
+	cmp	dl, [sum + rdi]
+	cmovg	dx, [rdi + sum]
+	cmovg	r8w, di
+	cmovg	si, bp
+	cmp	al, dil
+	jne	right_to_left
+	mov	r9b, 0
+	mov	r10, rax
+	inc 	rax
 	cmp	si, 0
-	je	swap_backward
-	jmp	while_
-swap_backward:
-	cmp	sil, 0
-	jne	while_
-	; mov	ecx
-	xchg	dl, [sum + rax]
-	mov 	[sum + r8], dl
-	xor	sil, sil
-	mov	bpl, [m]
-	mov	cl, bpl
-	movzx	di, al
-	;shl	ebp, 2
-	imul	di, bp
-	imul	r8, rbp
-	jmp 	swap_rows_backward
+	je	swap
+	jne 	while
 
-swap_rows_backward:
-	mov	spl, [matrix + r8] ; указательна начала строки жирной
-	xchg	spl, [matrix + rdi] 
-	mov	[matrix + r8], spl
-	inc	r8
+swap:
+	cmp	si, 0
+	jne	while
+	xchg	dl, [sum + r10]
+	mov 	[sum + r8], dl
+	mov	r11b, [ind + r8]
+	xchg	r11b, [ind + r10]
+	mov	[ind + r8], r11b
+	cmp	r9b, 1
+	je 	right_to_left_prepare
+	jne	while
+
+return_ans:
+	cmp	dil, [n]
+	je	end
+	movzx	r8, byte [m]
+	xor	rcx, rcx
+	movzx	rbx, byte [ind+rdi]
+	imul	r8, rbx
 	inc	dil
-	loop	swap_rows_backward
-	inc 	al
-	cmp	al, bl
-	jae	end
-	jmp	while_
+lo1:
+	mov	dl, [matrix+r8]
+	mov	[ans+r13], dl
+	inc	r13
+	inc	r8
+	inc	cl
+	cmp	cl, [m]
+	je	return_ans
+	jne	lo1
+	
 end:
 	mov	eax, 60
 	mov	edi, 0
