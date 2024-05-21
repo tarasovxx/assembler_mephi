@@ -8,7 +8,7 @@ m:
 	db	3
 matrix:
 	db	1, 0, 2
-	db	-1, 3, -1	
+	db	-1, 3, -1
 	db	2, 1, 1
 	db 	0, 0, 2
 ans:	times	12	db	0
@@ -59,7 +59,7 @@ while: ;while
 	cmp	al, bl
 	jae	return_ans
 	cmp	sil, 0
-	jne	end
+	;jne	end
 	inc	sil
 	movzx	rax, al
 	movzx	dx, [sum + rax]
@@ -78,8 +78,8 @@ left_to_right:
 	mov	r9b, 1; for swap, continue right_to_left
 	mov	r10, rbx
 	dec	rbx
-	cmp	si, 0
-	je	swap
+	;cmp	si, 0 TODO
+	jmp	swap
 	jne 	right_to_left
 
 right_to_left_prepare:
@@ -97,13 +97,13 @@ right_to_left:
 	mov	r9b, 0
 	mov	r10, rax
 	inc 	rax
-	cmp	si, 0
-	je	swap
+	;cmp	si, 0
+	jmp	swap
 	jne 	while
 
 swap:
-	cmp	si, 0
-	jne	while
+	;cmp	si, 0
+	;jne	while
 	xchg	dl, [sum + r10]
 	mov 	[sum + r8], dl
 	mov	r11b, [ind + r8]

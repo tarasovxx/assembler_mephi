@@ -1,7 +1,7 @@
 bits	64
 ;	remove all palindromes in string in file
 section	.data
-size	equ	4096
+size	equ	10;4096
 namelen	equ	1024
 anslen	equ	3
 err1:
@@ -168,6 +168,7 @@ work:
 	lea	rsi, [rbp-bufin]
 	lea	rdi, [rbp-buftmp]
 	lea	r8, [rbp-bufout]
+	add	rdi, rbx
 	mov	ecx, eax
 .input:
 	mov	al, [rsi]
@@ -223,6 +224,7 @@ work:
 	mov	byte [r8], r13b
 	inc	r11
 	inc	r8
+	xor	ebx, ebx;TODO
 	jmp	.insert_word
 
 .m3:
@@ -240,7 +242,7 @@ work:
 	
 	cmp	al, 10
 	jne	.m6
-	xor	ebx, ebx
+	;xor	ebx, ebx TODO
 	mov	byte [r8], 10
 	inc	r8
 	jmp	.m6
@@ -252,6 +254,7 @@ work:
 	jne	.input
 	mov	[rbp-letter], ebx
 	mov	[rbp-n], edx
+	;mov	[rbp-buftmp], rdi;todo
 	lea	rsi, [rbp-bufout]
 	mov	rdx, r8
 	sub	rdx, rsi

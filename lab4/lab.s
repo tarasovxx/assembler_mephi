@@ -9,12 +9,16 @@ msg3:
 	db	"sinh(%.10g)=%.10g", 10, 0
 msg4:
 	db	"mysinh(%.10g)=%.10g", 10, 0
+msg5:
+	db	"Input accuracy", 10, 0
 usage:
 	db	"Usage: %s file", 10, 0
 format_string:
-	db	"%d) sinh(x) = %.3f", 10, 0
+	db	"%d) sinh(x) = %.14f", 10, 0
 mode:
 	db	"w", 0
+abs_mask:
+	dq	0x7FFFFFFFFFFFFFFF, 0x7FFFFFFFFFFFFFFF
 
 section	.text
 one	dq	1.0
@@ -27,9 +31,10 @@ xm3	equ	xm2+8
 xm4	equ	xm3+8
 xm5	equ	xm4+8
 xm6	equ	xm5+8
-cnt	equ	xm6+4
+xm7	equ	xm6+8
+cnt	equ	xm7+4
 fw	equ	cnt+4
-myexp:
+mysinh:
 	; open output file
     	;mov rdi, filename
     	;mov rsi, "w"
@@ -40,6 +45,7 @@ myexp:
 	sub	rsp, fw
 	and	rsp, -16
 	mov	[rbp-fw], rdi
+	movsd	[rbp-xm7], xmm1
 	;movsd	[rsp-xm0], xmm0
 	
 	movsd	xmm1, xmm0
@@ -81,6 +87,7 @@ myexp:
 	movsd 	xmm4, [rbp-xm4]
 	movsd 	xmm5, [rbp-xm5]
 	movsd 	xmm6, [rbp-xm6]
+	movsd	xmm7, [rbp-xm7]
 	mov	rdi, qword [rbp-cnt]
 
 	addsd	xmm3, xmm4
@@ -88,8 +95,12 @@ myexp:
 	addsd	xmm6, xmm4
 	mulsd	xmm6, xmm3
 	addsd	xmm3, xmm4
-	ucomisd	xmm2, xmm5
-	jne	.m0
+	;TODO
+	movsd	xmm8, xmm1
+	andpd	xmm8, [abs_mask]
+	;ucomisd	xmm2, xmm5
+	ucomisd	xmm8, xmm7
+	ja	.m0
 	movsd	xmm0, xmm2
 	; close output file
     	;mov rdi, [file]
@@ -99,7 +110,8 @@ myexp:
 
 x	equ	8
 y	equ	x+8
-prog	equ	y+8
+accur	equ	y+8
+prog	equ	accur+8
 file	equ	prog+8
 fw1	equ	file+4
 
@@ -152,6 +164,17 @@ main:
 	lea	rsi, [rbp-x]
 	xor	eax, eax
 	call	scanf
+	or	eax, eax
+	jl	.m3
+	mov	edi, msg5
+	xor	eax, eax
+	call	printf
+	mov	edi, msg2
+	lea	rsi, [rbp-accur]
+	xor	eax, eax
+	call	scanf
+	or	eax, eax
+	jl	.m3
 	movsd	xmm0, [rbp-x]
 	call	sinh
 	movsd	[rbp-y], xmm0
@@ -161,8 +184,12 @@ main:
 	mov	eax, 2
 	call	printf
 	movsd	xmm0, [rbp-x]
+	movsd	xmm1, [rbp-accur]
+	andpd	xmm1, [abs_mask]
+	ucomisd	xmm1, [rbp-accur]
+	jne	.m3
 	mov	rdi, [rbp-fw1]
-	call	myexp
+	call	mysinh
 	movsd	[rbp-y], xmm0
 	mov	edi, msg4
 	movsd	xmm0, [rbp-x]
