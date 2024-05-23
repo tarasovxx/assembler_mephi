@@ -11,8 +11,8 @@ void rotate_image_c(void * from, void * to, int w, int h, double angle){
             int srcY = sin(rad) * (x - w / 2) + cos(rad) * (y - h / 2) + h / 2;
 
             if (srcX >= 0 && srcX < w && srcY >= 0 && srcY < h) {
-                int srcIndex = (srcY * w + srcX) * 4;
-                int dstIndex = (y * w + x) * 4;
+                int srcIndex = (srcY * w + srcX) * 4; //srcY * w
+                int dstIndex = (y * w + x) * 4; // y * w
 
                 dst[dstIndex] = src[srcIndex];
                 dst[dstIndex + 1] = src[srcIndex + 1];

@@ -72,7 +72,7 @@ mysinh:
 	movsd	[rbp-xm5], xmm5
 	movsd	[rbp-xm6], xmm6
 	mov	[rbp-cnt], rdi
-	movsd	xmm0, xmm2
+	movsd	xmm0, xmm1
 	;movsd	xmm1, xmm2
 
 	mov	rdx, rdi

@@ -1,7 +1,7 @@
 AS = /usr/bin/nasm
 LD = /usr/bin/ld
 
-CCFLAGS = -g -c -O3
+CCFLAGS = -g -c 
 ASFLAGS = -g -f elf64
 LDFLAGS = -static -z noexecstack
 
@@ -15,7 +15,7 @@ POSTOBJ = $(OBJPATH)/crtn.o
 
 SRCS = lab.c image.c imageasm.s
 HEAD = image.h stb_image.h stb_image_write.h
-OBJS = lab.o image.o imageasm.o imageasmSSE.o
+OBJS = lab.o image.o imageasm.o #imageasmSSE.o
 
 EXE = lab
 
