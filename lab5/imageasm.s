@@ -12,7 +12,7 @@ angle_rad resq 1
 cy resq 1
 section	.text
 work_image_asm:
-    ; rdi = src, rsi = dst, rdx = w, rcx = h, xmm0 = angle
+    	; rdi = src, rsi = dst, rdx = w, rcx = h, xmm0 = angle
 	or	edx, edx
 	jle	.exit
 	or	ecx, ecx
