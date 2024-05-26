@@ -80,8 +80,7 @@ int main(int argc, char * argv[]){
 		printf("Cannot write image_c to file\n");
 
 	clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &t1);
-	printf("x: %d\ny: %d\n", new_w, new_h);
-	work_image_asm(imgfrom, imgto, w, h, rad);
+	work_image_asm(imgfrom, imgto, w, h, new_w, new_h, rad);
 	clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &t2);
 	t.tv_sec=t2.tv_sec-t1.tv_sec;
 
@@ -93,18 +92,7 @@ int main(int argc, char * argv[]){
 	printf("Asm: %ld.%09ld\n", t.tv_sec, t.tv_nsec);
 	if (stbi_write_png(argv[3], new_w, new_h, n, imgto, new_w * n)==0)
 		printf("Cannot write image_asm to file\n");
-	clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &t1);
-
-	//work_image_asmSSE(imgfrom, imgto, x, y);
-	//clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &t2);
-	//t.tv_sec=t2.tv_sec-t1.tv_sec;
-	//if ((t.tv_nsec=t2.tv_nsec-t1.tv_nsec)<0){
-	//	t.tv_sec--;
-	//	t.tv_nsec+=1000000000;
-	//}
-	//printf("AsmSSE: %ld.%09ld\n", t.tv_sec, t.tv_nsec);
-	//if (stbi_write_png(argv[4], x, y, n, imgto, x*n)==0)
-	//	printf("Cannot write image_asmSSE to file\n");
+	
 	free(imgfrom);
 	free(imgto);
 	return 0;
